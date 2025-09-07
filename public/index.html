@@ -1,99 +1,31 @@
 <!doctype html>
-<html>
+<html lang="tr">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Fun Chess</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chessboard.js/1.0.0/css/chessboard.min.css" />
-  <style>
-    body { font-family: sans-serif; padding: 10px; }
-    #board { width: 400px; margin-top: 20px; }
-    .controls { margin-bottom: 10px; }
-    #log { margin-top: 20px; font-size: 14px; color: #444; }
-  </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Online Satranç</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chessboardjs/www/css/chessboard.css">
 </head>
 <body>
-  <h1>Fun Chess</h1>
-  <div class="controls">
-    <input id="roomId" placeholder="Room ID" />
-    <input id="name" placeholder="İsim" />
-    <button id="createBtn">Create Room</button>
-    <button id="joinBtn">Join Room</button>
+  <div id="auth">
+    <input id="playerName" placeholder="İsminiz">
+    <input id="roomName" placeholder="Oda adı">
+    <button id="createBtn">Oda Oluştur</button>
+    <button id="joinBtn">Odaya Katıl</button>
+    <p id="authMsg"></p>
   </div>
 
-  <div id="status">Henüz bağlanmadın.</div>
-  <div id="board"></div>
-  <div id="log"></div>
+  <div id="game" class="hidden">
+    <div id="board" style="width:360px"></div>
+    <p id="status"></p>
+    <button id="resignBtn">Terk</button>
+    <p id="gameMsg"></p>
+  </div>
 
-  <!-- socket.io -->
   <script src="/socket.io/socket.io.js"></script>
-  <!-- chess.js -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.13.4/chess.min.js"></script>
-  <!-- chessboard.js -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard.js/1.0.0/js/chessboard.min.js"></script>
-
-  <script>
-    const socket = io();
-    let roomId = null;
-    let game = null;
-    let board = null;
-    let color = null;
-
-    const statusEl = document.getElementById("status");
-    const logEl = document.getElementById("log");
-
-    function log(msg) {
-      logEl.innerHTML = msg + "<br>" + logEl.innerHTML;
-    }
-
-    document.getElementById("createBtn").addEventListener("click", () => {
-      roomId = document.getElementById("roomId").value || "room" + Math.floor(Math.random()*1000);
-      const name = document.getElementById("name").value || "Player";
-      socket.emit("createRoom", { roomId, name });
-      color = "white";
-    });
-
-    document.getElementById("joinBtn").addEventListener("click", () => {
-      roomId = document.getElementById("roomId").value;
-      const name = document.getElementById("name").value || "Player";
-      if(!roomId){ alert("Oda ID gir veya oluştur!"); return; }
-      socket.emit("joinRoom", { roomId, name });
-      color = "black";
-    });
-
-    socket.on("connect", () => statusEl.innerText = "Sunucuya bağlanıldı ✅");
-    socket.on("roomCreated", d => { statusEl.innerText = `Oda: ${d.roomId}`; log("Oda oluşturuldu."); });
-    socket.on("waiting", d => statusEl.innerText = d.message);
-
-    socket.on("gameStart", d => {
-      statusEl.innerText = d.message;
-      log("Oyun başladı!");
-      startChess();
-    });
-
-    socket.on("move", data => {
-      game.move(data.move);
-      board.position(game.fen());
-    });
-
-    socket.on("playerLeft", d => log("Oyuncu ayrıldı: " + d.id));
-
-    function startChess() {
-      game = new Chess();
-      board = Chessboard('board', {
-        draggable: true,
-        position: 'start',
-        orientation: color,
-        onDrop: (src, dst) => {
-          if (game.turn() !== color[0]) return 'snapback';
-          const move = game.move({ from: src, to: dst, promotion: 'q' });
-          if (move === null) return 'snapback';
-          board.position(game.fen());
-          socket.emit('move', { roomId, move });
-        }
-      });
-      setTimeout(() => board.resize(), 200);
-    }
-  </script>
+  <script src="https://cdn.jsdelivr.net/npm/chess.js/dist/chess.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chessboardjs/www/js/chessboard.js"></script>
+  <script src="client.js"></script>
 </body>
 </html>
