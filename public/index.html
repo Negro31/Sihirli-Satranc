@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Fun Chess</title>
   <link rel="stylesheet" href="/styles.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chessboard.js/1.0.0/css/chessboard.min.css" />
 </head>
 <body>
   <h1>Fun Chess</h1>
@@ -18,10 +19,13 @@
   </div>
 
   <div id="status">Henüz bağlanmadın.</div>
+  <div id="board" style="width: 400px"></div>
   <div id="log"></div>
 
   <!-- socket.io -->
   <script src="/socket.io/socket.io.js"></script>
+  <script src="/chess.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard.js/1.0.0/js/chessboard.min.js"></script>
   <script src="/main.js"></script>
 </body>
 </html>
