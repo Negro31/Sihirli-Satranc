@@ -2,7 +2,7 @@ const socket = io();
 let roomId = null;
 let game = null;
 let board = null;
-let color = null; // white veya black
+let color = null; // "white" veya "black"
 
 const statusEl = document.getElementById("status");
 const logEl = document.getElementById("log");
@@ -25,7 +25,7 @@ document.getElementById("joinBtn").addEventListener("click", () => {
   const name = document.getElementById("name").value || "Player";
   if(!roomId){ alert("Oda ID gir veya oluştur!"); return; }
   socket.emit("joinRoom", { roomId, name });
-  color = "black"; // Sonradan giren siyah
+  color = "black"; // Katılan siyah
 });
 
 // Socket olayları
@@ -41,7 +41,7 @@ socket.on("waiting", d => statusEl.innerText = d.message);
 socket.on("gameStart", d => {
   statusEl.innerText = d.message;
   log("Oyun başladı!");
-  startChess();
+  startChess(); // ✅ oyun başlayınca tahtayı aç
 });
 
 socket.on("move", data => {
@@ -60,13 +60,17 @@ function startChess() {
     position: 'start',
     orientation: color,
     onDrop: (source, target) => {
-      if(game.turn() !== color[0]) return 'snapback';
+      // Sıra sende mi?
+      if (game.turn() !== color[0]) return 'snapback';
 
       const move = game.move({ from: source, to: target, promotion: 'q' });
-      if(move === null) return 'snapback';
+      if (move === null) return 'snapback';
 
       board.position(game.fen());
       socket.emit('move', { roomId, move });
     }
   });
+
+  // Tahta boyutunu güncelle
+  setTimeout(() => board.resize(), 200);
 }
