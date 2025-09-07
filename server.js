@@ -22,7 +22,7 @@ function createRoom(roomId) {
 io.on('connection', socket => {
   console.log("Yeni bağlantı:", socket.id);
 
-  socket.on("createRoom", ({ roomId, name }) => {
+  socket.on("createRoom", ({ roomId }) => {
     if (rooms[roomId]) {
       socket.emit("roomExists");
       return;
@@ -31,10 +31,9 @@ io.on('connection', socket => {
     rooms[roomId].players.push(socket.id);
     socket.join(roomId);
     socket.emit("roomCreated", { roomId });
-    console.log(`${socket.id} yeni oda oluşturdu: ${roomId}`);
   });
 
-  socket.on('joinRoom', ({ roomId, name }) => {
+  socket.on('joinRoom', ({ roomId }) => {
     if (!rooms[roomId]) {
       socket.emit("roomNotFound");
       return;
@@ -49,8 +48,6 @@ io.on('connection', socket => {
     room.players.push(socket.id);
     socket.join(roomId);
 
-    console.log(`${socket.id} odaya katıldı: ${roomId}`);
-
     if (room.players.length === 2) {
       io.to(roomId).emit("gameStart", { message: "Oyun başladı!" });
     } else {
@@ -58,8 +55,12 @@ io.on('connection', socket => {
     }
   });
 
+  // ♟ Hamle paylaş
+  socket.on("move", ({ roomId, move }) => {
+    socket.to(roomId).emit("move", { move });
+  });
+
   socket.on("disconnect", () => {
-    console.log("Bağlantı koptu:", socket.id);
     for (let roomId in rooms) {
       const room = rooms[roomId];
       if (room.players.includes(socket.id)) {
