@@ -1,75 +1,65 @@
-const express = require('express');
-const http = require('http');
-const { Server } = require('socket.io');
-const cors = require('cors');
+const express = require("express");
+const http = require("http");
+const { Server } = require("socket.io");
 
 const app = express();
-app.use(cors());
-app.use(express.static('public'));
-
 const server = http.createServer(app);
-const io = new Server(server, {
-  cors: { origin: "*" }
-});
+const io = new Server(server);
 
-// Oda verileri
-const rooms = {};
+app.use(express.static("public"));
 
-function createRoom(roomId) {
-  rooms[roomId] = { players: [] };
-}
+let rooms = {};
 
-io.on('connection', socket => {
-  console.log("Yeni bağlantı:", socket.id);
+io.on("connection", (socket) => {
+  console.log("Yeni kullanıcı bağlandı:", socket.id);
 
-  socket.on("createRoom", ({ roomId }) => {
+  // Oda oluştur
+  socket.on("createRoom", ({ roomId, name }) => {
     if (rooms[roomId]) {
-      socket.emit("roomExists");
+      socket.emit("errorMsg", { message: "Bu oda zaten var!" });
       return;
     }
-    createRoom(roomId);
-    rooms[roomId].players.push(socket.id);
+    rooms[roomId] = { players: [socket.id], names: { [socket.id]: name } };
     socket.join(roomId);
     socket.emit("roomCreated", { roomId });
+    socket.emit("waiting", { message: "Rakip bekleniyor..." });
   });
 
-  socket.on('joinRoom', ({ roomId }) => {
+  // Odaya katıl
+  socket.on("joinRoom", ({ roomId, name }) => {
     if (!rooms[roomId]) {
-      socket.emit("roomNotFound");
+      socket.emit("errorMsg", { message: "Oda bulunamadı!" });
+      return;
+    }
+    if (rooms[roomId].players.length >= 2) {
+      socket.emit("errorMsg", { message: "Oda dolu!" });
       return;
     }
 
-    const room = rooms[roomId];
-    if (room.players.length >= 2) {
-      socket.emit("roomFull");
-      return;
-    }
-
-    room.players.push(socket.id);
+    rooms[roomId].players.push(socket.id);
+    rooms[roomId].names[socket.id] = name;
     socket.join(roomId);
 
-    if (room.players.length === 2) {
-      io.to(roomId).emit("gameStart", { message: "Oyun başladı!" });
-    } else {
-      socket.emit("waiting", { message: "Rakip bekleniyor..." });
-    }
+    io.to(roomId).emit("gameStart", { message: "Oyun başladı!" });
   });
 
-  // ♟ Hamle paylaş
+  // Hamleleri ilet
   socket.on("move", ({ roomId, move }) => {
     socket.to(roomId).emit("move", { move });
   });
 
+  // Oyuncu çıkınca
   socket.on("disconnect", () => {
-    for (let roomId in rooms) {
-      const room = rooms[roomId];
+    for (const [roomId, room] of Object.entries(rooms)) {
       if (room.players.includes(socket.id)) {
-        room.players = room.players.filter(p => p !== socket.id);
+        room.players = room.players.filter((p) => p !== socket.id);
+        delete room.names[socket.id];
         io.to(roomId).emit("playerLeft", { id: socket.id });
+        if (room.players.length === 0) delete rooms[roomId];
       }
     }
   });
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log("Sunucu çalışıyor:", PORT));
+server.listen(PORT, () => console.log(`Server çalışıyor: http://localhost:${PORT}`));
