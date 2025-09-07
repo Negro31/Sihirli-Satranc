@@ -7,23 +7,19 @@
   <link rel="stylesheet" href="/styles.css" />
 </head>
 <body>
-  <div id="app">
-    <header><h1>Fun Chess (mobile-ready)</h1></header>
-    <div class="controls">
-      <input id="roomId" placeholder="Room ID (ör: room1)" />
-      <input id="name" placeholder="İsim" />
-      <button id="joinBtn">Join</button>
-      <button id="shieldBtn">Use Shield (1x)</button>
-    </div>
+  <h1>Fun Chess</h1>
 
-    <div id="status"></div>
-    <div id="board"></div>
-
-    <div id="log"></div>
+  <div class="controls">
+    <input id="roomId" placeholder="Room ID (örn: room1)" />
+    <input id="name" placeholder="İsim" />
+    <button id="joinBtn">Join</button>
   </div>
 
+  <div id="status">Henüz bağlanmadın.</div>
+  <div id="log"></div>
+
+  <!-- socket.io -->
   <script src="/socket.io/socket.io.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chess.js@1.0.0/chess.min.js"></script>
   <script src="/main.js"></script>
 </body>
 </html>
