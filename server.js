@@ -22,8 +22,23 @@ function createRoom(roomId) {
 io.on('connection', socket => {
   console.log("Yeni bağlantı:", socket.id);
 
+  socket.on("createRoom", ({ roomId, name }) => {
+    if (rooms[roomId]) {
+      socket.emit("roomExists");
+      return;
+    }
+    createRoom(roomId);
+    rooms[roomId].players.push(socket.id);
+    socket.join(roomId);
+    socket.emit("roomCreated", { roomId });
+    console.log(`${socket.id} yeni oda oluşturdu: ${roomId}`);
+  });
+
   socket.on('joinRoom', ({ roomId, name }) => {
-    if (!rooms[roomId]) createRoom(roomId);
+    if (!rooms[roomId]) {
+      socket.emit("roomNotFound");
+      return;
+    }
 
     const room = rooms[roomId];
     if (room.players.length >= 2) {
