@@ -21,7 +21,7 @@ function getOpponent(room, socketId) {
 io.on("connection", (socket) => {
   socket.on("createRoom", ({ roomName, playerName }) => {
     if (rooms.has(roomName)) {
-      socket.emit("errorMessage", "Bu oda zaten var. Başka bir isim seç.");
+      socket.emit("errorMessage", "❌ Bu oda zaten var. Başka bir isim seç.");
       return;
     }
     const chess = new Chess();
@@ -34,26 +34,26 @@ io.on("connection", (socket) => {
     rooms.set(roomName, room);
     socket.join(roomName);
     room.players.set(socket.id, { name: playerName, color: null });
+    socket.emit("roomJoined", { roomName, playerName });
     io.to(roomName).emit("roomUpdate", {
-      roomName,
-      players: Array.from(room.players.values()),
+      players: Array.from(room.players.values()).map(p => p.name),
       started: room.started
     });
-    socket.emit("roomCreated", { roomName });
   });
 
   socket.on("joinRoom", ({ roomName, playerName }) => {
     const room = rooms.get(roomName);
     if (!room) {
-      socket.emit("errorMessage", "Böyle bir oda yok.");
+      socket.emit("errorMessage", "❌ Böyle bir oda yok.");
       return;
     }
     if (room.players.size >= 2) {
-      socket.emit("errorMessage", "Oda dolu.");
+      socket.emit("errorMessage", "❌ Oda dolu.");
       return;
     }
     socket.join(roomName);
     room.players.set(socket.id, { name: playerName, color: null });
+    socket.emit("roomJoined", { roomName, playerName });
 
     if (room.players.size === 2 && !room.started) {
       const ids = Array.from(room.players.keys());
@@ -72,11 +72,9 @@ io.on("connection", (socket) => {
       });
     } else {
       io.to(roomName).emit("roomUpdate", {
-        roomName,
-        players: Array.from(room.players.values()),
+        players: Array.from(room.players.values()).map(p => p.name),
         started: room.started
       });
-      socket.emit("waiting", "Rakip bekleniyor...");
     }
   });
 
@@ -86,22 +84,22 @@ io.on("connection", (socket) => {
     const player = room.players.get(socket.id);
     if (!player) return;
     if (player.color !== room.chess.turn()) {
-      socket.emit("errorMessage", "Sıra sende değil.");
+      socket.emit("errorMessage", "❌ Sıra sende değil.");
       return;
     }
     const move = room.chess.move({ from, to, promotion: promotion || "q" });
     if (!move) {
-      socket.emit("errorMessage", "Geçersiz hamle.");
+      socket.emit("errorMessage", "❌ Geçersiz hamle.");
       return;
     }
     io.to(roomName).emit("moveMade", {
-      from: move.from, to: move.to, san: move.san,
-      fen: room.chess.fen(), turn: room.chess.turn()
+      fen: room.chess.fen(),
+      turn: room.chess.turn()
     });
     if (room.chess.isGameOver()) {
-      let result = "Berabere";
+      let result = "🤝 Berabere";
       if (room.chess.isCheckmate()) {
-        result = player.color === "w" ? "Beyaz kazandı" : "Siyah kazandı";
+        result = player.color === "w" ? "🏆 Beyaz kazandı" : "🏆 Siyah kazandı";
       }
       io.to(roomName).emit("gameOver", { result, fen: room.chess.fen() });
     }
@@ -111,15 +109,14 @@ io.on("connection", (socket) => {
     const room = rooms.get(roomName);
     if (!room) return;
     const opp = getOpponent(room, socket.id);
-    io.to(roomName).emit("gameOver", { result: `Terk: ${opp ? opp.name : "Rakip"} kazandı.` });
+    io.to(roomName).emit("gameOver", { result: `🏳️ Terk: ${opp ? opp.name : "Rakip"} kazandı.` });
   });
 
   socket.on("disconnect", () => {
     for (const [roomName, room] of rooms.entries()) {
       if (room.players.has(socket.id)) {
         room.players.delete(socket.id);
-        socket.leave(roomName);
-        io.to(roomName).emit("opponentLeft", "Rakip ayrıldı.");
+        io.to(roomName).emit("opponentLeft", "⚠️ Rakip oyundan ayrıldı.");
         if (room.players.size === 0) rooms.delete(roomName);
       }
     }
