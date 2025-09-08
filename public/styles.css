@@ -1,6 +1,6 @@
 body {
   font-family: "Segoe UI", sans-serif;
-  background: radial-gradient(circle at top, #0f172a, #020617);
+  background: linear-gradient(135deg, #000000, #111111);
   color: #f8fafc;
   display: flex;
   justify-content: center;
@@ -12,10 +12,10 @@ body {
 .hidden { display: none; }
 
 #auth, #game {
-  background: rgba(30, 41, 59, 0.95);
-  padding: 24px;
+  background: rgba(20, 20, 20, 0.95);
+  padding: 28px;
   border-radius: 16px;
-  box-shadow: 0 8px 24px rgba(0,0,0,.7);
+  box-shadow: 0 0 25px rgba(0, 255, 200, 0.25);
   text-align: center;
   animation: fadeIn 0.6s ease;
 }
@@ -25,29 +25,31 @@ input {
   width: 100%;
   margin: 10px 0;
   padding: 12px;
-  border-radius: 10px;
-  border: 1px solid #475569;
-  background: #0f172a;
-  color: white;
+  border-radius: 8px;
+  border: 1px solid #333;
+  background: #000;
+  color: #0ff;
   font-size: 15px;
   text-align: center;
 }
 
 button {
-  margin: 6px;
-  padding: 12px 18px;
+  margin: 8px;
+  padding: 12px 22px;
   border: none;
-  border-radius: 10px;
+  border-radius: 8px;
   cursor: pointer;
-  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-  color: white;
+  background: linear-gradient(90deg, #00ffff, #0099ff);
+  color: black;
   font-weight: bold;
-  font-size: 15px;
-  transition: transform 0.15s ease, box-shadow 0.2s ease;
+  font-size: 16px;
+  transition: all 0.2s ease;
+  text-shadow: 0 0 6px #fff;
+  box-shadow: 0 0 12px rgba(0,255,255,0.6);
 }
 button:hover {
-  transform: scale(1.07);
-  box-shadow: 0 0 16px #3b82f6;
+  transform: scale(1.1);
+  box-shadow: 0 0 20px rgba(0,255,255,1);
 }
 button:active {
   transform: scale(0.95);
@@ -55,12 +57,14 @@ button:active {
 
 #board {
   margin: 20px auto;
+  box-shadow: 0 0 20px rgba(0,255,255,0.3);
 }
 
 #status, #gameMsg {
-  margin-top: 12px;
+  margin-top: 14px;
   font-size: 16px;
   font-weight: 500;
+  color: #0ff;
 }
 
 @keyframes fadeIn {
