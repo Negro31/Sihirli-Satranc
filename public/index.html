@@ -5,10 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Online Satranç</title>
   <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chessboardjs/www/css/chessboard.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.css">
 </head>
 <body>
   <div id="auth">
+    <h2>♟ Online Satranç</h2>
     <input id="playerName" placeholder="İsminiz">
     <input id="roomName" placeholder="Oda adı">
     <button id="createBtn">Oda Oluştur</button>
@@ -17,15 +18,16 @@
   </div>
 
   <div id="game" class="hidden">
-    <div id="board" style="width:360px"></div>
+    <h2 id="roomTitle"></h2>
+    <div id="board" style="width:400px"></div>
     <p id="status"></p>
-    <button id="resignBtn">Terk</button>
+    <button id="resignBtn">🏳️ Terk</button>
     <p id="gameMsg"></p>
   </div>
 
   <script src="/socket.io/socket.io.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chess.js/dist/chess.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chessboardjs/www/js/chessboard.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.12.0/chess.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.js"></script>
   <script src="client.js"></script>
 </body>
 </html>
