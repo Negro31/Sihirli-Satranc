@@ -6,25 +6,21 @@ let myColor = null;
 let roomName = null;
 let myName = null;
 
-function $(sel){ return document.querySelector(sel); }
-function setText(id, text){ document.getElementById(id).textContent = text; }
-function show(id){ document.getElementById(id).classList.remove("hidden"); }
-function hide(id){ document.getElementById(id).classList.add("hidden"); }
+function $(id){ return document.getElementById(id); }
 
 function updateStatus() {
   if (!game) return;
   let status = "";
   const moveColor = game.turn() === "w" ? "Beyaz" : "Siyah";
-
   if (game.isGameOver()) status = "Oyun bitti";
   else if (game.in_checkmate()) status = "Şah mat!";
   else if (game.in_draw()) status = "Berabere.";
   else status = moveColor + " oynuyor" + (game.in_check() ? " (ŞAH!)" : "");
-  setText("status", status);
+  $("status").textContent = status;
 }
 
 function onDragStart (source, piece) {
-  if (!game || game.isGameOver()) return false;
+  if (!game || game.game_over()) return false;
   if ((myColor === "w" && piece.startsWith("b")) || (myColor === "b" && piece.startsWith("w")))
     return false;
   if (game.turn() !== myColor) return false;
@@ -50,40 +46,41 @@ function initBoard(orientation) {
 }
 
 // Oda oluştur
-$("#createBtn").addEventListener("click", () => {
-  myName = $("#playerName").value.trim() || "Misafir";
-  roomName = $("#roomName").value.trim();
+$("createBtn").addEventListener("click", () => {
+  myName = $("playerName").value.trim() || "Misafir";
+  roomName = $("roomName").value.trim();
   socket.emit("createRoom", { roomName, playerName: myName });
 });
 
 // Odaya katıl
-$("#joinBtn").addEventListener("click", () => {
-  myName = $("#playerName").value.trim() || "Misafir";
-  roomName = $("#roomName").value.trim();
+$("joinBtn").addEventListener("click", () => {
+  myName = $("playerName").value.trim() || "Misafir";
+  roomName = $("roomName").value.trim();
   socket.emit("joinRoom", { roomName, playerName: myName });
 });
 
 // Terk et
-$("#resignBtn").addEventListener("click", () => {
+$("resignBtn").addEventListener("click", () => {
   if (roomName) socket.emit("resign", { roomName });
 });
 
-// ✅ Odaya girildiğinde bilgi ver
+// Odaya girildi
 socket.on("roomJoined", ({ roomName, playerName }) => {
-  setText("authMsg", `✔️ ${playerName} olarak ${roomName} odasına girdin.`);
+  $("authMsg").textContent = `✔️ ${playerName} olarak "${roomName}" odasına girdin.`;
+  $("roomTitle").textContent = `Oda: ${roomName}`;
 });
 
-// ✅ Oyun başladı
+// Oyun başladı
 socket.on("gameStarted", ({ players, fen }) => {
-  hide("auth");
-  show("game");
+  $("auth").classList.add("hidden");
+  $("game").classList.remove("hidden");
   const me = players.find(p => p.name === myName);
   myColor = me.color;
   initBoard(myColor === "w" ? "white" : "black");
   game.load(fen);
   board.position(fen);
   updateStatus();
-  setText("gameMsg", "🎮 Oyun başladı!");
+  $("gameMsg").textContent = "🎮 Oyun başladı!";
 });
 
 // Hamle işlendi
@@ -98,11 +95,11 @@ socket.on("gameOver", ({ result, fen }) => {
   game.load(fen);
   board.position(fen);
   updateStatus();
-  setText("gameMsg", result);
+  $("gameMsg").textContent = result;
 });
 
 // Rakip çıktı
-socket.on("opponentLeft", (msg) => { setText("gameMsg", msg); });
+socket.on("opponentLeft", (msg) => { $("gameMsg").textContent = msg; });
 
 // Hatalar
-socket.on("errorMessage", (msg) => { setText("authMsg", msg); });
+socket.on("errorMessage", (msg) => { $("authMsg").textContent = msg; });
